@@ -163,13 +163,14 @@ def prepare_tables_for_test(prepare_dataset, prepare_dataset_cached, temp_delta_
 
         dataset_fixture = prepare_dataset_cached
 
-        for filename, (schema, location, table_name, partition_by, liquid_clustering) in files.items():            
+        for filename, config in files.items():
+            table_name = config.table_name or filename
             _df = dataset_fixture(
-                file_name=determine_file_path(base_path=location, filename=filename), 
-                schema=schema, 
-                table_name=table_name, 
-                partition_by=partition_by, 
-                liquid_clustering=liquid_clustering
+                file_name=determine_file_path(base_path=config.location, filename=filename),
+                schema=config.schema,
+                table_name=table_name,
+                partition_by=config.partition_by,
+                liquid_clustering=config.liquid_clustering,
             )
             output[filename] = _df
 

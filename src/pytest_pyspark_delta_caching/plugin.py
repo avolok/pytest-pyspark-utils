@@ -3,9 +3,19 @@ import random
 import string
 import sys
 import time
-from typing import Generator
+from dataclasses import dataclass
+from typing import Generator, List, Optional
 
 import pytest
+
+
+@dataclass
+class TableConfig:
+    location: str = ""
+    schema: Optional["StructType"] = None  # pyspark.sql.types.StructType
+    table_name: Optional[str] = None  # defaults to dict key when None
+    partition_by: Optional[List[str]] = None
+    liquid_clustering: bool = False
 
 
 def pytest_addoption(parser):
