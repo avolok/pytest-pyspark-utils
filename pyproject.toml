@@ -1,0 +1,49 @@
+[build-system]
+requires = [
+  "setuptools>=61.0.0",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pytest-pyspark-delta-caching"
+description = "A simple plugin to use with pytest"
+version = "0.1.0"
+readme = "README.rst"
+requires-python = ">=3.10"
+authors = [
+    { name = "Alex Volok", email = "alexandr.volok@gmail.com" },
+]
+maintainers = [
+    { name = "Alex Volok", email = "alexandr.volok@gmail.com" },
+]
+license = {file = "LICENSE"}
+classifiers = [
+    "Framework :: Pytest",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Testing",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+]
+dependencies = [
+    "pytest>=6.2.0",
+]
+
+[project.optional-dependencies]
+[project.urls]
+Repository = "https://github.com/avolok/pytest-pyspark-delta-caching"
+[project.entry-points.pytest11]
+pyspark-delta-caching = "pytest_pyspark_delta_caching.plugin"
+
+[tool.pytest.ini_options]
+delta_jar = "io.delta:delta-spark_2.13:4.0.1"
+spark_app_name = "my-project-tests"
