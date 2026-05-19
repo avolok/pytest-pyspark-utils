@@ -19,11 +19,6 @@ def delta_tables_config():
             schema=dataset1_schema,
             partition_by=["id"],
         ),
-        "dataset2": TableConfig(
-            source="input",
-            schema=dataset1_schema,
-            partition_by=["id"],
-        ),
         "expected_dataset1": TableConfig(
             source="expected",
             schema=dataset1_schema,
