@@ -51,9 +51,12 @@ class DeltaCaching:
         # to calculate a combined hash of the input csv file and the schema.py
         # if any of them changed, the cache will be invalidated and recalculated
         csv_source_content = self.source_path.read_text().encode("UTF-16")
-        schema_module_content = self.schema_module_path.read_text().encode("UTF-16")
+        if self.schema_module_path.exists():
+            schema_module_content = self.schema_module_path.read_text().encode("UTF-16")
+        else:
+            schema_module_content = b""
 
-        if self.source_path.exists():
+        if self.source_path.exists() :
             return hashlib.md5(csv_source_content + schema_module_content).hexdigest()
         else:
             return "-2"
