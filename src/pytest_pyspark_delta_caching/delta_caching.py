@@ -93,23 +93,23 @@ class DeltaCaching:
         if self.schema:
             return self.spark.read.schema(self.schema).json(jsonl_path)
         else:
-            return self.spark.read.options(header=True, inferSchema=True).json(jsonl_path)
+            return self.spark.read.options(header=True, inferSchema=True).json(
+                jsonl_path
+            )
 
     def read_csv(self) -> DataFrame:
         csv_path = self.source_path.as_posix()
 
         if self.schema:
             return (
-                self.spark.read
-                .options(header=True)
+                self.spark.read.options(header=True)
                 .option("nullValue", "null")
                 .schema(self.schema)
                 .csv(csv_path)
             )
         else:
             return (
-                self.spark.read
-                .options(header=True, inferSchema=True)
+                self.spark.read.options(header=True, inferSchema=True)
                 .option("nullValue", "null")
                 .csv(csv_path)
             )
@@ -136,7 +136,10 @@ class DeltaCaching:
 
     def construct_table_ddl(self) -> str:
         delta_location = self.cached_path.as_posix()
-        columns = [f"{field.name} {field.dataType.simpleString()}" for field in self.schema.fields]
+        columns = [
+            f"{field.name} {field.dataType.simpleString()}"
+            for field in self.schema.fields
+        ]
         columns_str = ",\n ".join(columns)
 
         if self.partition_by:

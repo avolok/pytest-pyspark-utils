@@ -7,19 +7,20 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Generator, List, Optional
+from typing import Generator
 
 import pytest
 
 from pytest_pyspark_delta_caching.delta_caching import DeltaCaching
+from pyspark.sql.types import StructType
 
 
 @dataclass
 class TableConfig:
     source: str = "input"  # "input", "expected", or an absolute path
-    schema: Optional["StructType"] = None
-    table_name: Optional[str] = None
-    partition_by: Optional[List[str]] = None
+    schema: StructType | None = None
+    table_name: str | None = None
+    partition_by: list[str] | None = None
     liquid_clustering: bool = False
 
 
@@ -31,7 +32,8 @@ SOURCE_DIR_MAP = {
 
 def determine_file_path(base_path: str, filename: str) -> str:
     file_matches = [
-        file for file in Path(base_path).glob(f"{filename}.*")
+        file
+        for file in Path(base_path).glob(f"{filename}.*")
         if file.suffix in [".jsonl", ".csv"]
     ]
 
@@ -85,7 +87,11 @@ def set_utc_timezone():
 def spark(set_utc_timezone, request) -> Generator:
     from pyspark.sql import SparkSession
 
-    delta_jar = request.config.getoption("--delta-jar") or request.config.getini("delta_jar") or None
+    delta_jar = (
+        request.config.getoption("--delta-jar")
+        or request.config.getini("delta_jar")
+        or None
+    )
     app_name = request.config.getini("spark_app_name")
     database_name = "pytest_" + "".join(
         random.choice(string.ascii_lowercase + string.digits) for _ in range(4)
@@ -110,15 +116,17 @@ def spark(set_utc_timezone, request) -> Generator:
         .config("spark.worker.ui.retainedDrivers", "1")
         .config("spark.driver.memory", "4g")
         .config("spark.sql.autoBroadcastJoinThreshold", "-1")
-        .config("spark.driver.extraJavaOptions", "-Duser.timezone=UTC -XX:+UseCompressedOops")
+        .config(
+            "spark.driver.extraJavaOptions",
+            "-Duser.timezone=UTC -XX:+UseCompressedOops",
+        )
         .config("spark.executor.extraJavaOptions", "-Duser.timezone=UTC")
         .config("spark.sql.session.timeZone", "UTC")
     )
 
     if delta_jar:
         builder = (
-            builder
-            .config("spark.jars.packages", delta_jar)
+            builder.config("spark.jars.packages", delta_jar)
             .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
             .config(
                 "spark.sql.catalog.spark_catalog",
@@ -199,7 +207,9 @@ def prepare_tables_for_test(spark, _pyspark_module_delta_path, request):
             shutil.copytree(delta_caching.cached_path, delta_target_path)
 
             spark.sql(f"DROP TABLE IF EXISTS {table_name}")
-            spark.sql(f"CREATE TABLE {table_name} USING DELTA LOCATION '{delta_target_path.as_posix()}'")
+            spark.sql(
+                f"CREATE TABLE {table_name} USING DELTA LOCATION '{delta_target_path.as_posix()}'"
+            )
 
             output[filename] = _df
             print(f"successfully created delta table for {filename}")
@@ -219,21 +229,29 @@ def _delta_tables_cached(prepare_tables_for_test, delta_tables_config):
 
 
 @pytest.fixture(scope="function")
-def delta_tables(spark, _delta_tables_cached, _pyspark_module_delta_path, _pyspark_tmp_dir, tmp_path):
+def delta_tables(
+    spark, _delta_tables_cached, _pyspark_module_delta_path, _pyspark_tmp_dir, tmp_path
+):
     source = _pyspark_module_delta_path
     dest = Path(str(_pyspark_tmp_dir)) / "isolated_tables" / tmp_path.name
     shutil.copytree(Path(source), dest, dirs_exist_ok=True)
 
     tables = spark.sql("SHOW TABLES").collect()
     for table in tables:
-        fqn = f"{table.namespace}.{table.tableName}" if table.namespace else table.tableName
+        fqn = (
+            f"{table.namespace}.{table.tableName}"
+            if table.namespace
+            else table.tableName
+        )
         spark.sql(f"DROP TABLE IF EXISTS {fqn}")
 
     for filename, df in _delta_tables_cached.items():
         if filename == "delta_tables_path":
             continue
         table_path = dest / filename
-        spark.sql(f"CREATE TABLE {filename} USING DELTA LOCATION '{table_path.as_posix()}'")
+        spark.sql(
+            f"CREATE TABLE {filename} USING DELTA LOCATION '{table_path.as_posix()}'"
+        )
 
     output = dict(_delta_tables_cached)
     output["delta_tables_path"] = dest.as_posix()
@@ -244,8 +262,9 @@ def delta_tables(spark, _delta_tables_cached, _pyspark_module_delta_path, _pyspa
 def drop_hive_objects(spark):
     tables = spark.sql("SHOW TABLES").collect()
     for table in tables:
-        fqn = f"{table.namespace}.{table.tableName}" if table.namespace else table.tableName
+        fqn = (
+            f"{table.namespace}.{table.tableName}"
+            if table.namespace
+            else table.tableName
+        )
         spark.sql(f"DROP TABLE IF EXISTS {fqn}")
-
-
-

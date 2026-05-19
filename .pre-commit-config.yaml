@@ -1,0 +1,46 @@
+repos:
+
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.5.0
+  hooks:  
+  - id: check-yaml
+    args: [--allow-multiple-documents]
+  - id: check-json
+  - id: check-toml
+  
+  - id: check-ast
+  
+  - id: check-added-large-files
+    args: [--maxkb=50000] # to disallow commit of files larger than 50MB
+
+  # - id: no-commit-to-branch
+  #   args: [
+  #     --branch=staging, 
+  #     --branch=main, 
+  #     --branch=develop,
+  #   ]
+
+- repo: https://github.com/charliermarsh/ruff-pre-commit
+  rev: v0.3.1
+  hooks:
+  - id: ruff
+    name: "Lint code with Ruff" 
+    files: .
+    args: ["--fix"]       
+    
+  - id: ruff-format
+    name: "Format code with Ruff"
+    files: .
+
+
+
+# -   repo: local
+#     hooks:
+#     -   id: ty
+#         name: "Type check config with ty"
+#         entry: uvx ty@0.0.24 check --extra-search-path task-interpreter/src task-interpreter/src/l2tasker
+#         language: system
+#         types: [python]
+#         pass_filenames: false
+#         files: ^task-interpreter/src/l2tasker/
+      

@@ -3,12 +3,14 @@ from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 
 from pytest_pyspark_delta_caching import TableConfig
 
-dataset1_schema = StructType([
-    StructField("id", IntegerType(), True),
-    StructField("name", StringType(), True),
-    StructField("age", IntegerType(), True),
-    StructField("department", StringType(), True),
-])
+dataset1_schema = StructType(
+    [
+        StructField("id", IntegerType(), True),
+        StructField("name", StringType(), True),
+        StructField("age", IntegerType(), True),
+        StructField("department", StringType(), True),
+    ]
+)
 
 
 @pytest.fixture(scope="module")

@@ -36,6 +36,13 @@ dependencies = [
     "pytest>=6.2.0",
 ]
 
+[dependency-groups]
+dev=[
+  "pre-commit==4.6.0",
+  "pyspark==4.0.2",
+  # "ty==0.0.24"
+]
+
 [project.optional-dependencies]
 [project.urls]
 Repository = "https://github.com/avolok/pytest-pyspark-delta-caching"
