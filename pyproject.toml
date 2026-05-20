@@ -51,5 +51,6 @@ Repository = "https://github.com/avolok/pytest-pyspark-utils"
 pyspark-utils = "pytest_pyspark_utils.plugin"
 
 [tool.pytest.ini_options]
+pythonpath = ["."]
 delta_jar = "io.delta:delta-spark_2.13:4.0.1"
 spark_app_name = "my-project-tests"
