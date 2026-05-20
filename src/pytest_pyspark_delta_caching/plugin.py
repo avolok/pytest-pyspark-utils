@@ -1,36 +1,98 @@
+"""pytest plugin providing PySpark fixtures with Delta Lake table caching.
+
+Fixtures:
+    spark: Session-scoped SparkSession with optional Delta Lake support.
+    delta_tables: Function-scoped ``DeltaTablesResult`` with per-test isolation.
+    set_utc_timezone: Sets TZ=UTC for the test session.
+    drop_hive_objects: Drops all Hive tables (utility, not auto-used).
+
+Configuration (pytest.ini / pyproject.toml / CLI):
+    delta_jar: Maven coordinates for Delta Lake JAR.
+    spark_app_name: Spark application name (default: pytest-pyspark).
+    delta_cache_dir: Cache directory name (default: _delta_cache).
+
+Usage:
+    Define a module-scoped ``delta_tables_config`` fixture returning
+    ``dict[str, TableConfig]``, then use ``delta_tables`` in your tests.
+"""
+
+import logging
 import os
 import random
 import shutil
 import string
 import sys
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Generator
 
 import pytest
 
 from pytest_pyspark_delta_caching.delta_caching import DeltaCaching
+from pyspark.sql import DataFrame
 from pyspark.sql.types import StructType
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
 class TableConfig:
-    source: str = "input"  # "input", "expected", or an absolute path
+    """Configuration for a single test table loaded from CSV or JSONL.
+
+    Args:
+        source: Subdirectory under the test folder where the source file lives
+            (``"input"`` or ``"expected"``). Defaults to ``"input"``.
+        schema: Explicit Spark schema. If ``None``, schema is inferred from the file.
+        table_name: SQL table name to register. Defaults to the source filename stem.
+        partition_by: Column names to partition the Delta table by.
+            Mutually exclusive with ``liquid_clustering``.
+        liquid_clustering: Enable Delta Lake liquid clustering (requires ``schema``).
+            Mutually exclusive with ``partition_by``.
+    """
+
+    source: str = "input"
     schema: StructType | None = None
     table_name: str | None = None
     partition_by: list[str] | None = None
     liquid_clustering: bool = False
 
 
-SOURCE_DIR_MAP = {
-    "input": "input",
-    "expected": "expected",
-}
+@dataclass
+class DeltaTablesResult:
+    """Result returned by the :func:`delta_tables` fixture.
+
+    Attributes:
+        tables: Mapping from config key (filename stem) to the corresponding DataFrame.
+        path: Filesystem path to the isolated Delta table copies for this test.
+    """
+
+    tables: dict[str, DataFrame]
+    path: str
+
+
+@dataclass
+class _CachedTables:
+    """Internal module-level cache returned by ``_prepare_tables_for_test``."""
+
+    entries: dict[str, tuple[str, DataFrame]] = field(default_factory=dict)
+    path: str = ""
 
 
 def determine_file_path(base_path: str, filename: str) -> str:
+    """Find the unique CSV or JSONL file matching *filename* in *base_path*.
+
+    Args:
+        base_path: Directory to search in.
+        filename: Stem name (no extension) to match.
+
+    Returns:
+        Absolute path string to the matched file.
+
+    Raises:
+        FileNotFoundError: If no matching file exists.
+        FileExistsError: If more than one matching file exists.
+    """
     file_matches = [
         file
         for file in Path(base_path).glob(f"{filename}.*")
@@ -49,6 +111,7 @@ def determine_file_path(base_path: str, filename: str) -> str:
 
 
 def pytest_addoption(parser):
+    """Register CLI flags and INI options for the pyspark-delta-caching plugin."""
     group = parser.getgroup("pyspark-delta-caching")
     group.addoption(
         "--delta-jar",
@@ -77,14 +140,94 @@ def pytest_addoption(parser):
     )
 
 
+# --- Internal fixtures ---
+
+
+@pytest.fixture(scope="session")
+def _pyspark_tmp_dir(tmp_path_factory):
+    base = tmp_path_factory.mktemp("delta")
+    yield base
+    shutil.rmtree(base, ignore_errors=True)
+
+
+@pytest.fixture(scope="module")
+def _pyspark_module_delta_path(_pyspark_tmp_dir, request):
+    return (_pyspark_tmp_dir / Path(request.node.name).stem).as_posix()
+
+
+@pytest.fixture(scope="module")
+def _prepare_tables_for_test(spark, _pyspark_module_delta_path, request):
+    def _prepare_tables_for_test(files: dict) -> _CachedTables:
+        start = datetime.now()
+        test_dir = request.path.parent
+        cache_base_dir = test_dir / request.config.getini("delta_cache_dir")
+        temp_delta = Path(_pyspark_module_delta_path)
+        entries: dict[str, tuple[str, DataFrame]] = {}
+
+        for filename, config in files.items():
+            table_name = config.table_name or filename
+
+            location = (test_dir / config.source).as_posix()
+
+            file_path = determine_file_path(base_path=location, filename=filename)
+
+            delta_caching = DeltaCaching(
+                source_path=file_path,
+                cache_base_dir=cache_base_dir,
+                spark=spark,
+                schema=config.schema,
+                partition_by=config.partition_by,
+                liquid_clustering=config.liquid_clustering,
+            )
+            _df = delta_caching.cache()
+
+            delta_target_path = temp_delta / table_name
+            shutil.copytree(delta_caching.cached_path, delta_target_path)
+
+            spark.sql(f"DROP TABLE IF EXISTS {table_name}")
+            spark.sql(
+                f"CREATE TABLE {table_name} USING DELTA LOCATION '{delta_target_path.as_posix()}'"
+            )
+
+            entries[filename] = (table_name, _df)
+            print(f"successfully created delta table for {filename}")
+
+        duration = round((datetime.now() - start).total_seconds(), 1)
+        print(f"done with creating tables ({duration}s).")
+
+        return _CachedTables(entries=entries, path=_pyspark_module_delta_path)
+
+    return _prepare_tables_for_test
+
+
+@pytest.fixture(scope="module")
+def _delta_tables_cached(
+    _prepare_tables_for_test, delta_tables_config
+) -> _CachedTables:
+    return _prepare_tables_for_test(delta_tables_config)
+
+
+# --- Public fixtures ---
+
+
 @pytest.fixture(scope="session")
 def set_utc_timezone():
+    """Set the process timezone to UTC for the duration of the test session."""
     os.environ["TZ"] = "UTC"
     time.tzset()
 
 
 @pytest.fixture(scope="session")
-def spark(set_utc_timezone, request) -> Generator:
+def spark(set_utc_timezone, request):
+    """Create a session-scoped SparkSession configured for local testing.
+
+    Enables Delta Lake support when ``delta_jar`` is configured.  The session
+    uses a randomly-named database so parallel test runs remain isolated in the
+    Hive metastore.
+
+    Yields:
+        SparkSession ready for use in tests.
+    """
     from pyspark.sql import SparkSession
 
     delta_jar = (
@@ -145,94 +288,27 @@ def spark(set_utc_timezone, request) -> Generator:
         spark_session.stop()
 
 
-# --- Internal fixtures ---
-
-
-@pytest.fixture(scope="session")
-def _pyspark_tmp_dir(tmp_path_factory):
-    base = tmp_path_factory.mktemp("delta")
-    yield base
-    shutil.rmtree(base, ignore_errors=True)
-
-
-@pytest.fixture(scope="module")
-def _pyspark_module_delta_path(_pyspark_tmp_dir, request):
-    return (_pyspark_tmp_dir / Path(request.node.name).stem).as_posix()
-
-
-# --- Public fixtures ---
-
-
-@pytest.fixture(scope="module")
-def get_test_paths():
-    def _get_test_paths(test_file_location: Path):
-        test_group_location = test_file_location.parent
-        test_input_path = (test_group_location / "input").as_posix()
-        test_expected_output_path = (test_group_location / "expected_output").as_posix()
-        return test_input_path, test_expected_output_path
-
-    yield _get_test_paths
-
-
-@pytest.fixture(scope="module")
-def prepare_tables_for_test(spark, _pyspark_module_delta_path, request):
-    def _prepare_tables_for_test(files: dict):
-        start = datetime.now()
-        test_dir = request.path.parent
-        cache_base_dir = test_dir / request.config.getini("delta_cache_dir")
-        temp_delta = Path(_pyspark_module_delta_path)
-        output = {}
-
-        for filename, config in files.items():
-            table_name = config.table_name or filename
-
-            if config.source in SOURCE_DIR_MAP:
-                location = (test_dir / SOURCE_DIR_MAP[config.source]).as_posix()
-            else:
-                location = config.source
-
-            file_path = determine_file_path(base_path=location, filename=filename)
-
-            delta_caching = DeltaCaching(
-                source_path=file_path,
-                cache_base_dir=cache_base_dir,
-                spark=spark,
-                schema=config.schema,
-                partition_by=config.partition_by,
-                liquid_clustering=config.liquid_clustering,
-            )
-            _df = delta_caching.cache()
-
-            delta_target_path = temp_delta / table_name
-            shutil.copytree(delta_caching.cached_path, delta_target_path)
-
-            spark.sql(f"DROP TABLE IF EXISTS {table_name}")
-            spark.sql(
-                f"CREATE TABLE {table_name} USING DELTA LOCATION '{delta_target_path.as_posix()}'"
-            )
-
-            output[filename] = _df
-            print(f"successfully created delta table for {filename}")
-
-        duration = round((datetime.now() - start).total_seconds(), 1)
-        print(f"done with creating tables ({duration}s).")
-
-        output["delta_tables_path"] = _pyspark_module_delta_path
-        return output
-
-    return _prepare_tables_for_test
-
-
-@pytest.fixture(scope="module")
-def _delta_tables_cached(prepare_tables_for_test, delta_tables_config):
-    return prepare_tables_for_test(delta_tables_config)
-
-
 @pytest.fixture(scope="function")
 def delta_tables(
-    spark, _delta_tables_cached, _pyspark_module_delta_path, _pyspark_tmp_dir, tmp_path
-):
-    source = _pyspark_module_delta_path
+    spark, _delta_tables_cached: _CachedTables, _pyspark_tmp_dir, tmp_path
+) -> DeltaTablesResult:
+    """Provide per-test isolated Delta tables as a :class:`DeltaTablesResult`.
+
+    Copies the module-level cached tables to a function-specific directory,
+    drops all existing Hive tables, and re-registers fresh copies.  Mutations
+    made during a test do not affect sibling tests.
+
+    Args:
+        spark: The session-scoped SparkSession.
+        _delta_tables_cached: Module-level cached table entries.
+        _pyspark_tmp_dir: Session-scoped temp directory.
+        tmp_path: pytest-provided per-test temp directory (used as a unique suffix).
+
+    Returns:
+        A :class:`DeltaTablesResult` with ``tables`` (filename → DataFrame) and
+        ``path`` (directory holding the isolated Delta copies).
+    """
+    source = _delta_tables_cached.path
     dest = Path(str(_pyspark_tmp_dir)) / "isolated_tables" / tmp_path.name
     shutil.copytree(Path(source), dest, dirs_exist_ok=True)
 
@@ -245,21 +321,24 @@ def delta_tables(
         )
         spark.sql(f"DROP TABLE IF EXISTS {fqn}")
 
-    for filename, df in _delta_tables_cached.items():
-        if filename == "delta_tables_path":
-            continue
-        table_path = dest / filename
+    result_tables: dict[str, DataFrame] = {}
+    for filename, (table_name, df) in _delta_tables_cached.entries.items():
+        table_path = dest / table_name
         spark.sql(
-            f"CREATE TABLE {filename} USING DELTA LOCATION '{table_path.as_posix()}'"
+            f"CREATE TABLE {table_name} USING DELTA LOCATION '{table_path.as_posix()}'"
         )
+        result_tables[filename] = df
 
-    output = dict(_delta_tables_cached)
-    output["delta_tables_path"] = dest.as_posix()
-    return output
+    return DeltaTablesResult(tables=result_tables, path=dest.as_posix())
 
 
 @pytest.fixture(scope="function")
 def drop_hive_objects(spark):
+    """Drop all Hive tables in the current database.
+
+    Useful as an explicit teardown step in tests that create their own tables
+    outside of the ``delta_tables`` fixture.
+    """
     tables = spark.sql("SHOW TABLES").collect()
     for table in tables:
         fqn = (
