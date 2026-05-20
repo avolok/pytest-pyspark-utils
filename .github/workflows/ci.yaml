@@ -6,6 +6,7 @@ on:
       - "pytest_pyspark_utils/**"
       - "tests/**"
       - ".github/workflows/ci.yaml"
+      - ".pre-commit-config.yaml"
   workflow_dispatch:
 
 concurrency:
