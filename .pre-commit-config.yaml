@@ -32,15 +32,3 @@ repos:
     name: "Format code with Ruff"
     files: .
 
-
-
-# -   repo: local
-#     hooks:
-#     -   id: ty
-#         name: "Type check config with ty"
-#         entry: uvx ty@0.0.24 check --extra-search-path task-interpreter/src task-interpreter/src/l2tasker
-#         language: system
-#         types: [python]
-#         pass_filenames: false
-#         files: ^task-interpreter/src/l2tasker/
-      
