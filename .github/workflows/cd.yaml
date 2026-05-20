@@ -63,3 +63,33 @@ jobs:
 
     outputs:
       released: ${{ steps.release.outputs.released || 'false' }}
+
+  deploy:
+    # 1. Separate out the deploy step from the publish step to run each step at
+    #    the least amount of token privilege
+    # 2. Also, deployments can fail, and its better to have a separate job if you need to retry
+    #    and it won't require reversing the release.
+    runs-on: ubuntu-latest
+    needs: release
+    if: ${{ needs.release.outputs.released == 'true' }}
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Setup | Download Build Artifacts
+        uses: actions/download-artifact@v4
+        id: artifact-download
+        with:
+          name: distribution-artifacts
+          path: dist
+     
+      # see https://docs.pypi.org/trusted-publishers/
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
+          print-hash: true
+          verbose: true
+          changelog: true
