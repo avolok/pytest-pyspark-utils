@@ -1,13 +1,6 @@
 name: pytest-pyspark-utils CI
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "pytest_pyspark_utils/**"
-      - "tests/**"
-      - ".github/workflows/ci.yaml"
   pull_request:
     paths:
       - "pytest_pyspark_utils/**"
