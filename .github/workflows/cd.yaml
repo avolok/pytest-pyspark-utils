@@ -31,7 +31,6 @@ jobs:
         with:
           ref: ${{ github.ref_name }}
           fetch-depth: 0
-          persist-credentials: false
 
       - name: Setup | Force release branch to be at workflow sha
         run: |
