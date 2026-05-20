@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.2 (2026-05-20)
+
+### Bug Fixes
+
+- Add deploy step to CD pipeline for publishing package distributions to PyPI
+  ([#6](https://github.com/avolok/pytest-pyspark-utils/pull/6),
+  [`aa31dc9`](https://github.com/avolok/pytest-pyspark-utils/commit/aa31dc90020869daa53f3eb155cdb620e9082185))
+
+
 ## v1.0.1 (2026-05-20)
 
 ### Bug Fixes
