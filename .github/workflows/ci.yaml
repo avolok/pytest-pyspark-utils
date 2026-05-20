@@ -6,6 +6,7 @@ on:
       - "pytest_pyspark_utils/**"
       - "tests/**"
       - ".github/workflows/ci.yaml"
+      - ".pre-commit-config.yaml"
   workflow_dispatch:
 
 concurrency:
@@ -16,6 +17,8 @@ jobs:
   ci:
     name: "CI: pytest-pyspark-utils"
     runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
 

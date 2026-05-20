@@ -41,6 +41,7 @@ dependencies = [
 dev=[
   "pre-commit==4.6.0",
   "pyspark==4.0.2",
+  "pytest-cov>=5.0.0",
   # "ty==0.0.24"
 ]
 
@@ -51,5 +52,6 @@ Repository = "https://github.com/avolok/pytest-pyspark-utils"
 pyspark-utils = "pytest_pyspark_utils.plugin"
 
 [tool.pytest.ini_options]
+pythonpath = ["."]
 delta_jar = "io.delta:delta-spark_2.13:4.0.1"
 spark_app_name = "my-project-tests"

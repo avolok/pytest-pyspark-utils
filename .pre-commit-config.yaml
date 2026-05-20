@@ -13,12 +13,11 @@ repos:
   - id: check-added-large-files
     args: [--maxkb=50000] # to disallow commit of files larger than 50MB
 
-  # - id: no-commit-to-branch
-  #   args: [
-  #     --branch=staging, 
-  #     --branch=main, 
-  #     --branch=develop,
-  #   ]
+  - id: no-commit-to-branch
+    args: [
+      --branch=main, 
+      --branch=develop,
+    ]
 
 - repo: https://github.com/charliermarsh/ruff-pre-commit
   rev: v0.3.1
