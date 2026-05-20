@@ -4,9 +4,8 @@ A pytest plugin that provides a reusable `spark` session fixture and automated D
 
 ## Features
 
-- Session-scoped `spark` fixture — one Spark session per test run, shared across all tests
-- Optional Delta Lake support via configurable Maven JAR coordinates
-- **Delta table caching** — CSV/JSONL files are converted to Delta once and cached between runs
+- Session-scoped `spark` fixture — one Spark session shared across all tests
+- Function-scoped `delta_tables` fixture — CSV/JSONL files are converted to Delta once and cached between runs
 - **Per-test isolation** — each test gets its own copy of the Delta tables via the `delta_tables` fixture
 - PySpark version-agnostic — works with PySpark 3.x and 4.x
 - Configurable via `pytest.ini`, `pyproject.toml`, or CLI flags
@@ -33,9 +32,7 @@ pip install pytest-pyspark-utils pyspark==4.0.2
 Once installed, the `spark` fixture is automatically available in all your tests — no import or conftest wiring needed.
 
 ```python
-from pyspark.sql import SparkSession
-
-def test_something(spark: SparkSession):
+def test_something(spark):
     df = spark.createDataFrame([(1, "a"), (2, "b")], ["id", "value"])
     assert df.count() == 2
 ```
@@ -127,7 +124,7 @@ This means the first run pays the conversion cost, but subsequent runs are fast 
 ```python
 @dataclass
 class TableConfig:
-    source: str = "input"           # "input", "expected", or an absolute path
+    source: str = "input"           # "input", "expected"
     schema: Optional[StructType] = None  # PySpark schema (recommended for consistency)
     table_name: Optional[str] = None     # Defaults to the dict key
     partition_by: Optional[List[str]] = None
@@ -136,7 +133,7 @@ class TableConfig:
 
 | Field | Description |
 |-------|-------------|
-| `source` | Where to find the data file. `"input"` resolves to `<test_dir>/input/`, `"expected"` resolves to `<test_dir>/expected/`. Or pass an absolute path. |
+| `source` | Where to find the data file. `"input"` resolves to `<test_dir>/input/`, `"expected"` resolves to `<test_dir>/expected/`. |
 | `schema` | PySpark `StructType`. If omitted, schema is inferred from the file. |
 | `table_name` | The Spark SQL table name. Defaults to the dictionary key. |
 | `partition_by` | List of columns to partition the Delta table by. |

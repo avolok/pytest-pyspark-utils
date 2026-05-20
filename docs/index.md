@@ -1,3 +1,3 @@
 # Welcome to pytest-pyspark-utils
 
-A simple plugin to use with pytest
+pytest fixtures for PySpark testing — shared Spark session and automated Delta table caching

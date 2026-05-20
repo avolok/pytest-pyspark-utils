@@ -1,5 +1,5 @@
 site_name: pytest-pyspark-utils
-site_description: A simple plugin to use with pytest
+site_description: pytest fixtures for PySpark testing — shared Spark session and automated Delta table caching
 site_author: Alex Volok
 
 theme: readthedocs
