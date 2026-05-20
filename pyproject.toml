@@ -34,6 +34,7 @@ classifiers = [
 ]
 dependencies = [
     "pytest>=6.2.0",
+    "chispa==0.12.0"
 ]
 
 [dependency-groups]
