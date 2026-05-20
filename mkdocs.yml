@@ -1,10 +1,10 @@
-site_name: pytest-pyspark-delta-caching
+site_name: pytest-pyspark-utils
 site_description: A simple plugin to use with pytest
 site_author: Alex Volok
 
 theme: readthedocs
 
-repo_url: https://github.com/avolok/pytest-pyspark-delta-caching
+repo_url: https://github.com/avolok/pytest-pyspark-utils
 
 pages:
 - Home: index.md

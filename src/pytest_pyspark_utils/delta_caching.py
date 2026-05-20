@@ -1,5 +1,5 @@
 """
-Delta Lake caching layer for pytest-pyspark-delta-caching.
+Delta Lake caching layer for pytest-pyspark-utils.
 
 Converts CSV/JSONL source files to Delta format and caches them on disk.
 Cache validity is determined by an MD5 hash of the source file content

@@ -29,7 +29,7 @@ from pathlib import Path
 
 import pytest
 
-from pytest_pyspark_delta_caching.delta_caching import DeltaCaching
+from pytest_pyspark_utils.delta_caching import DeltaCaching
 from pyspark.sql import DataFrame
 from pyspark.sql.types import StructType
 

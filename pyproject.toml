@@ -5,7 +5,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pytest-pyspark-delta-caching"
+name = "pytest-pyspark-utils"
 description = "A simple plugin to use with pytest"
 version = "0.1.0"
 readme = "README.rst"
@@ -45,9 +45,9 @@ dev=[
 
 [project.optional-dependencies]
 [project.urls]
-Repository = "https://github.com/avolok/pytest-pyspark-delta-caching"
+Repository = "https://github.com/avolok/pytest-pyspark-utils"
 [project.entry-points.pytest11]
-pyspark-delta-caching = "pytest_pyspark_delta_caching.plugin"
+pyspark-utils = "pytest_pyspark_utils.plugin"
 
 [tool.pytest.ini_options]
 delta_jar = "io.delta:delta-spark_2.13:4.0.1"

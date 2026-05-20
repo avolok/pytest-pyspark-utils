@@ -1,4 +1,4 @@
-# pytest-pyspark-delta-caching
+# pytest-pyspark-utils
 
 A pytest plugin that provides a reusable `spark` session fixture and automated Delta table caching for PySpark testing. Eliminates boilerplate Spark session setup and speeds up tests by caching CSV/JSONL-to-Delta conversions.
 
@@ -17,13 +17,13 @@ Install the plugin with your chosen PySpark version:
 
 ```bash
 # PySpark 4.x
-pip install "pytest-pyspark-delta-caching[pyspark4]"
+pip install "pytest-pyspark-utils[pyspark4]"
 
 # PySpark 3.x
-pip install "pytest-pyspark-delta-caching[pyspark3]"
+pip install "pytest-pyspark-utils[pyspark3]"
 
 # Or pin an exact version alongside the plugin
-pip install pytest-pyspark-delta-caching pyspark==4.0.2
+pip install pytest-pyspark-utils pyspark==4.0.2
 ```
 
 ## Usage
@@ -63,7 +63,7 @@ tests/test_my_feature/
 # tests/test_my_feature/conftest.py
 import pytest
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType
-from pytest_pyspark_delta_caching import TableConfig
+from pytest_pyspark_utils import TableConfig
 
 users_schema = StructType([
     StructField("id", IntegerType(), True),

@@ -166,7 +166,7 @@ wheels = [
 ]
 
 [[package]]
-name = "pytest-pyspark-delta-caching"
+name = "pytest-pyspark-utils"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

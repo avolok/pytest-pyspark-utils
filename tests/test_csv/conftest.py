@@ -1,7 +1,7 @@
 import pytest
 from pyspark.sql.types import StructType, StructField, StringType, IntegerType
 
-from pytest_pyspark_delta_caching import TableConfig
+from pytest_pyspark_utils import TableConfig
 
 dataset1_schema = StructType(
     [
