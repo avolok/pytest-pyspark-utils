@@ -26,9 +26,9 @@ pip install "pytest-pyspark-utils[pyspark3]"
 pip install pytest-pyspark-utils pyspark==4.0.2
 ```
 
-## Usage
+## Usage of fixtures
 
-### Basic: Spark session only
+### Spark fixture
 
 Once installed, the `spark` fixture is automatically available in all your tests — no import or conftest wiring needed.
 
@@ -40,7 +40,7 @@ def test_something(spark: SparkSession):
     assert df.count() == 2
 ```
 
-### Delta tables from CSV/JSONL files
+### Delta_tables fixture
 
 The plugin can automatically convert your test data files (CSV or JSONL) into cached Delta tables and register them as Spark SQL tables. Each test gets an isolated copy.
 
