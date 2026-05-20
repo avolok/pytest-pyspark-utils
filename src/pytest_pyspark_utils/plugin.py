@@ -93,11 +93,7 @@ def determine_file_path(base_path: str, filename: str) -> str:
         FileNotFoundError: If no matching file exists.
         FileExistsError: If more than one matching file exists.
     """
-    file_matches = [
-        file
-        for file in Path(base_path).glob(f"{filename}.*")
-        if file.suffix in [".jsonl", ".csv"]
-    ]
+    file_matches = [file for file in Path(base_path).glob(f"{filename}.*") if file.suffix in [".jsonl", ".csv"]]
 
     if not file_matches:
         raise FileNotFoundError(f"No file found for {filename} in {base_path}")
@@ -118,10 +114,7 @@ def pytest_addoption(parser):
         action="store",
         dest="delta_jar",
         default=None,
-        help=(
-            "Delta Lake Maven coordinates for spark.jars.packages, "
-            "e.g. io.delta:delta-spark_2.13:4.0.1"
-        ),
+        help=("Delta Lake Maven coordinates for spark.jars.packages, " "e.g. io.delta:delta-spark_2.13:4.0.1"),
     )
     parser.addini(
         "delta_jar",
@@ -185,9 +178,7 @@ def _prepare_tables_for_test(spark, _pyspark_module_delta_path, request):
             shutil.copytree(delta_caching.cached_path, delta_target_path)
 
             spark.sql(f"DROP TABLE IF EXISTS {table_name}")
-            spark.sql(
-                f"CREATE TABLE {table_name} USING DELTA LOCATION '{delta_target_path.as_posix()}'"
-            )
+            spark.sql(f"CREATE TABLE {table_name} USING DELTA LOCATION '{delta_target_path.as_posix()}'")
 
             entries[filename] = (table_name, _df)
             print(f"successfully created delta table for {filename}")
@@ -201,9 +192,7 @@ def _prepare_tables_for_test(spark, _pyspark_module_delta_path, request):
 
 
 @pytest.fixture(scope="module")
-def _delta_tables_cached(
-    _prepare_tables_for_test, delta_tables_config
-) -> _CachedTables:
+def _delta_tables_cached(_prepare_tables_for_test, delta_tables_config) -> _CachedTables:
     return _prepare_tables_for_test(delta_tables_config)
 
 
@@ -230,15 +219,9 @@ def spark(set_utc_timezone, request):
     """
     from pyspark.sql import SparkSession
 
-    delta_jar = (
-        request.config.getoption("--delta-jar")
-        or request.config.getini("delta_jar")
-        or None
-    )
+    delta_jar = request.config.getoption("--delta-jar") or request.config.getini("delta_jar") or None
     app_name = request.config.getini("spark_app_name")
-    database_name = "pytest_" + "".join(
-        random.choice(string.ascii_lowercase + string.digits) for _ in range(4)
-    )
+    database_name = "pytest_" + "".join(random.choice(string.ascii_lowercase + string.digits) for _ in range(4))
 
     os.environ["PYSPARK_PYTHON"] = sys.executable
     os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
@@ -289,9 +272,7 @@ def spark(set_utc_timezone, request):
 
 
 @pytest.fixture(scope="function")
-def delta_tables(
-    spark, _delta_tables_cached: _CachedTables, _pyspark_tmp_dir, tmp_path
-) -> DeltaTablesResult:
+def delta_tables(spark, _delta_tables_cached: _CachedTables, _pyspark_tmp_dir, tmp_path) -> DeltaTablesResult:
     """Provide per-test isolated Delta tables as a :class:`DeltaTablesResult`.
 
     Copies the module-level cached tables to a function-specific directory,
@@ -314,19 +295,13 @@ def delta_tables(
 
     tables = spark.sql("SHOW TABLES").collect()
     for table in tables:
-        fqn = (
-            f"{table.namespace}.{table.tableName}"
-            if table.namespace
-            else table.tableName
-        )
+        fqn = f"{table.namespace}.{table.tableName}" if table.namespace else table.tableName
         spark.sql(f"DROP TABLE IF EXISTS {fqn}")
 
     result_tables: dict[str, DataFrame] = {}
     for filename, (table_name, df) in _delta_tables_cached.entries.items():
         table_path = dest / table_name
-        spark.sql(
-            f"CREATE TABLE {table_name} USING DELTA LOCATION '{table_path.as_posix()}'"
-        )
+        spark.sql(f"CREATE TABLE {table_name} USING DELTA LOCATION '{table_path.as_posix()}'")
         result_tables[filename] = df
 
     return DeltaTablesResult(tables=result_tables, path=dest.as_posix())
@@ -341,9 +316,5 @@ def drop_hive_objects(spark):
     """
     tables = spark.sql("SHOW TABLES").collect()
     for table in tables:
-        fqn = (
-            f"{table.namespace}.{table.tableName}"
-            if table.namespace
-            else table.tableName
-        )
+        fqn = f"{table.namespace}.{table.tableName}" if table.namespace else table.tableName
         spark.sql(f"DROP TABLE IF EXISTS {fqn}")

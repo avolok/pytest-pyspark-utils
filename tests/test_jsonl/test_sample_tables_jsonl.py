@@ -13,6 +13,4 @@ def test_tables(spark, delta_tables):
     result_df = count_employees_by_department(input_df)
 
     # assert
-    assert_df_equality(
-        result_df, expected_df, ignore_row_order=True, ignore_nullable=True
-    )
+    assert_df_equality(result_df, expected_df, ignore_row_order=True, ignore_nullable=True)
