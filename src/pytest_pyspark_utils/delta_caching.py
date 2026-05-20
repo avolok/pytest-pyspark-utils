@@ -161,18 +161,9 @@ class DeltaCaching:
         csv_path = self.source_path.as_posix()
 
         if self.schema:
-            return (
-                self.spark.read.options(header=True)
-                .option("nullValue", "null")
-                .schema(self.schema)
-                .csv(csv_path)
-            )
+            return self.spark.read.options(header=True).option("nullValue", "null").schema(self.schema).csv(csv_path)
         else:
-            return (
-                self.spark.read.options(header=True, inferSchema=True)
-                .option("nullValue", "null")
-                .csv(csv_path)
-            )
+            return self.spark.read.options(header=True, inferSchema=True).option("nullValue", "null").csv(csv_path)
 
     def write_delta(self) -> DataFrame:
         """Convert the source file to Delta and write it to the cache directory.
@@ -192,9 +183,7 @@ class DeltaCaching:
             ValueError: When ``liquid_clustering=True`` but no schema is provided.
         """
         if self.liquid_clustering and self.schema is None:
-            raise ValueError(
-                "liquid_clustering=True requires an explicit schema to be provided"
-            )
+            raise ValueError("liquid_clustering=True requires an explicit schema to be provided")
 
         reader = self.read()
         delta_location = self.cached_path.as_posix()
@@ -226,10 +215,7 @@ class DeltaCaching:
             A DDL string ready to pass to ``spark.sql()``.
         """
         delta_location = self.cached_path.as_posix()
-        columns = [
-            f"{field.name} {field.dataType.simpleString()}"
-            for field in self.schema.fields
-        ]
+        columns = [f"{field.name} {field.dataType.simpleString()}" for field in self.schema.fields]
         columns_str = ",\n ".join(columns)
 
         if self.partition_by:

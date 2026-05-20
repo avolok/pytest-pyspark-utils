@@ -11,8 +11,4 @@ def count_employees_by_department(input_df: DataFrame) -> DataFrame:
         is the number of employees in each department.
     """
 
-    return (
-        input_df.groupBy("department")
-        .count()
-        .withColumnRenamed("count", "employee_count")
-    )
+    return input_df.groupBy("department").count().withColumnRenamed("count", "employee_count")
