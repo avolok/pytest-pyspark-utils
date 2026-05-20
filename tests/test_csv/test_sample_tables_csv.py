@@ -7,7 +7,7 @@ def test_tables(spark, delta_tables):
 
     # arrange
     input_df = spark.table("employees")
-    expected_df = spark.table("expected_employees_stats")
+    expected_df = spark.table("expected_departments_stats")
 
     # act
     result_df = count_employees_by_department(input_df)
