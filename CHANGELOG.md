@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v1.0.3 (2026-05-20)
+
+### Bug Fixes
+
+- Update readme file reference in pyproject.toml from README.rst to README.md
+  ([#7](https://github.com/avolok/pytest-pyspark-utils/pull/7),
+  [`6c3ec95`](https://github.com/avolok/pytest-pyspark-utils/commit/6c3ec9562b70a48e745c234546725159b42de9bf))
+
+
 ## v1.0.2 (2026-05-20)
 
 ### Bug Fixes
