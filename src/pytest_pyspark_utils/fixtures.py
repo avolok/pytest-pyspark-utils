@@ -211,6 +211,8 @@ def delta_tables(spark, _delta_tables_cached: _CachedTables, _pyspark_tmp_dir, t
         spark.sql(f"CREATE TABLE {table_name} USING DELTA LOCATION '{table_path.as_posix()}'")
         result_tables[filename] = df
 
+    os.environ["UNIT_TEST_TMP_DIR"] = dest.as_posix()
+
     return DeltaTablesResult(tables=result_tables, path=dest.as_posix())
 
 
