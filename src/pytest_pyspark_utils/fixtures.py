@@ -23,7 +23,7 @@ from pyspark.sql import DataFrame
 
 from pytest_pyspark_utils.delta_caching import DeltaCaching
 from pytest_pyspark_utils.models import DeltaTablesResult, _CachedTables
-from pytest_pyspark_utils.utils import determine_file_path
+from pytest_pyspark_utils.utils import determine_file_path, determine_delta_jar
 
 logger = logging.getLogger(__name__)
 
@@ -121,6 +121,16 @@ def spark(set_utc_timezone, request):
     os.environ["PYSPARK_PYTHON"] = sys.executable
     os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
 
+    if delta_jar is None:
+        try:
+            print(
+                "No delta_jar specified in pytest.ini, attempting to determine automatically based on PySpark version..."
+            )
+            delta_jar = determine_delta_jar()
+            print(f"Determined Delta Lake JAR: {delta_jar}")
+        except ValueError as e:
+            print(f"Warning: {e}")
+
     builder = (
         SparkSession.builder.master("local[*]")
         .appName(app_name)
@@ -154,6 +164,8 @@ def spark(set_utc_timezone, request):
                 "org.apache.spark.sql.delta.catalog.DeltaCatalog",
             )
         )
+    else:
+        print("Delta Lake support is disabled for this Spark session.")
 
     spark_session = builder.getOrCreate()
     spark_session.sparkContext.setLogLevel("ERROR")
