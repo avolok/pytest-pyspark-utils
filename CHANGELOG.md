@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v1.2.0 (2026-06-18)
+
+### Features
+
+- Auto-detect Delta Lake JAR from installed PySpark version
+  ([#10](https://github.com/avolok/pytest-pyspark-utils/pull/10),
+  [`2dad138`](https://github.com/avolok/pytest-pyspark-utils/commit/2dad1381dfa88b1d914c77bcc83772169c980c39))
+
+- Set UNIT_TEST_TMP_DIR environment variable in delta_tables fixture
+  ([#10](https://github.com/avolok/pytest-pyspark-utils/pull/10),
+  [`2dad138`](https://github.com/avolok/pytest-pyspark-utils/commit/2dad1381dfa88b1d914c77bcc83772169c980c39))
+
+
 ## v1.1.0 (2026-06-18)
 
 ### Features
