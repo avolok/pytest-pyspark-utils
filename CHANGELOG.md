@@ -2,6 +2,20 @@
 
 <!-- version list -->
 
+## v1.1.0 (2026-06-18)
+
+### Features
+
+- Auto-detect Delta Lake JAR from installed PySpark version
+  ([#9](https://github.com/avolok/pytest-pyspark-utils/pull/9),
+  [`c765911`](https://github.com/avolok/pytest-pyspark-utils/commit/c7659117cd6c63e0eac618dc6e328fbe71098d5f))
+
+### Refactoring
+
+- Split plugin.py into smaller modules ([#8](https://github.com/avolok/pytest-pyspark-utils/pull/8),
+  [`c259ef4`](https://github.com/avolok/pytest-pyspark-utils/commit/c259ef4f5c976ba7df9987e1a6fc13699ecfcb25))
+
+
 ## v1.0.3 (2026-05-20)
 
 ### Bug Fixes
