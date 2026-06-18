@@ -5,7 +5,8 @@ A pytest plugin that provides a reusable `spark` session fixture and automated D
 ## Features
 
 - Session-scoped `spark` fixture — one Spark session per test run, shared across all tests
-- Optional Delta Lake support via configurable Maven JAR coordinates
+- **Automatic Delta JAR detection** — resolves the correct Delta Lake Maven coordinates from the installed PySpark version
+- Optional manual Delta Lake configuration via Maven JAR coordinates
 - **Delta table caching** — CSV/JSONL files are converted to Delta once and cached between runs
 - **Per-test isolation** — each test gets its own copy of the Delta tables via the `delta_tables` fixture
 - PySpark version-agnostic — works with PySpark 3.x and 4.x
@@ -144,9 +145,21 @@ class TableConfig:
 
 ## Configuration
 
-### With Delta Lake
+### Delta Lake (automatic)
 
-Set the Delta JAR coordinates in `pyproject.toml`:
+By default, the plugin **automatically detects** the installed PySpark version and resolves the correct Delta Lake Maven JAR coordinates — no configuration required.
+
+```python
+# Just use the spark fixture — Delta Lake works out of the box
+def test_with_delta(spark, delta_tables):
+    spark.table("my_table").show()
+```
+
+If auto-detection fails (e.g. an unsupported PySpark version), the fixture falls back to a plain Spark session without Delta extensions and prints a warning.
+
+### Delta Lake (manual override)
+
+You can override the auto-detected JAR by setting `delta_jar` explicitly in `pyproject.toml`:
 
 ```toml
 [tool.pytest.ini_options]
@@ -169,21 +182,38 @@ Or pass it directly on the command line:
 pytest --delta-jar=io.delta:delta-spark_2.13:4.0.1
 ```
 
-When `delta_jar` is not set, the fixture starts a plain Spark session without Delta extensions.
-
 ### Delta JAR coordinates by PySpark version
+
+The following versions are auto-detected. Use this table if you need to set `delta_jar` manually:
 
 | PySpark | Delta JAR coordinates                    |
 |---------|------------------------------------------|
 | 4.0.x   | `io.delta:delta-spark_2.13:4.0.1`        |
-| 3.5.x   | `io.delta:delta-spark_2.12:3.2.0`        |
+| 3.5.x   | `io.delta:delta-spark_2.12:3.3.2`        |
+| 3.4.x   | `io.delta:delta-core_2.12:2.4.0`         |
 | 3.3.x   | `io.delta:delta-core_2.12:2.3.0`         |
+| 3.2.x   | `io.delta:delta-core_2.12:2.0.2`         |
+
+### Programmatic access
+
+The `determine_delta_jar()` function is available as a public API:
+
+```python
+from pytest_pyspark_utils import determine_delta_jar
+
+# Auto-detect from installed PySpark
+jar = determine_delta_jar()
+
+# Or pass a specific version
+jar = determine_delta_jar("3.5.3")
+# => "io.delta:delta-spark_2.12:3.3.2"
+```
 
 ### Available options
 
 | Option          | `pytest.ini` key  | CLI flag          | Default          | Description                              |
 |-----------------|-------------------|-------------------|------------------|------------------------------------------|
-| Delta JAR       | `delta_jar`       | `--delta-jar`     | _(none)_         | Maven coordinates for Delta Lake JAR     |
+| Delta JAR       | `delta_jar`       | `--delta-jar`     | _(auto-detect)_  | Maven coordinates for Delta Lake JAR     |
 | App name        | `spark_app_name`  | —                 | `pytest-pyspark` | Spark application name                   |
 | Cache dir       | `delta_cache_dir` | —                 | `_delta_cache`   | Directory name for cached Delta tables   |
 
