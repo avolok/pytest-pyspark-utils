@@ -56,7 +56,7 @@ def delta_tables_config():
 
 # Use in tests
 def test_example(spark, delta_tables):
-    df = spark.read.format("delta").load(delta_tables.tables["employees"])
+    df = spark.read.format("delta").load(delta_tables.dataframes["employees"])
     # assert with chispa
 ```
 
