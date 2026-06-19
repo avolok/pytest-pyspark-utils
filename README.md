@@ -165,6 +165,7 @@ You can override the auto-detected JAR by setting `delta_jar` explicitly in `pyp
 [tool.pytest.ini_options]
 delta_jar = "io.delta:delta-spark_2.13:4.0.1"
 spark_app_name = "my-project-tests"
+spark_driver_memory = "4g"
 delta_cache_dir = "_delta_cache"
 ```
 
@@ -174,6 +175,8 @@ Or in `pytest.ini`:
 [pytest]
 delta_jar = io.delta:delta-spark_2.13:4.0.1
 spark_app_name = my-project-tests
+spark_driver_memory = 4g
+delta_cache_dir = _delta_cache
 ```
 
 Or pass it directly on the command line:
@@ -211,11 +214,12 @@ jar = determine_delta_jar("3.5.3")
 
 ### Available options
 
-| Option          | `pytest.ini` key  | CLI flag          | Default          | Description                              |
-|-----------------|-------------------|-------------------|------------------|------------------------------------------|
-| Delta JAR       | `delta_jar`       | `--delta-jar`     | _(auto-detect)_  | Maven coordinates for Delta Lake JAR     |
-| App name        | `spark_app_name`  | —                 | `pytest-pyspark` | Spark application name                   |
-| Cache dir       | `delta_cache_dir` | —                 | `_delta_cache`   | Directory name for cached Delta tables   |
+| Option          | `pytest.ini` key      | CLI flag          | Default          | Description                              |
+|-----------------|------------------------|-------------------|------------------|------------------------------------------|
+| Delta JAR       | `delta_jar`            | `--delta-jar`     | _(auto-detect)_  | Maven coordinates for Delta Lake JAR     |
+| App name        | `spark_app_name`       | —                 | `pytest-pyspark` | Spark application name                   |
+| Driver memory   | `spark_driver_memory`  | —                 | `4g`             | spark.driver.memory for the SparkSession |
+| Cache dir       | `delta_cache_dir`      | —                 | `_delta_cache`   | Directory name for cached Delta tables   |
 
 ## How it works
 
