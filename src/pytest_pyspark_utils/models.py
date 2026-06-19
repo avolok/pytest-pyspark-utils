@@ -37,7 +37,7 @@ class DeltaTablesResult:
         path: Filesystem path to the isolated Delta table copies for this test.
     """
 
-    tables: dict[str, DataFrame]
+    dataframes: dict[str, DataFrame]
     path: str
 
 

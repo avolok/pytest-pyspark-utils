@@ -196,7 +196,7 @@ def delta_tables(spark, _delta_tables_cached: _CachedTables, _pyspark_tmp_dir, t
         tmp_path: pytest-provided per-test temp directory (used as a unique suffix).
 
     Returns:
-        A :class:`DeltaTablesResult` with ``tables`` (filename → DataFrame) and
+        A :class:`DeltaTablesResult` with ``dataframes`` (filename → DataFrame) and
         ``path`` (directory holding the isolated Delta copies).
     """
     source = _delta_tables_cached.path
@@ -208,15 +208,15 @@ def delta_tables(spark, _delta_tables_cached: _CachedTables, _pyspark_tmp_dir, t
         fqn = f"{table.namespace}.{table.tableName}" if table.namespace else table.tableName
         spark.sql(f"DROP TABLE IF EXISTS {fqn}")
 
-    result_tables: dict[str, DataFrame] = {}
+    dataframes: dict[str, DataFrame] = {}
     for filename, (table_name, df) in _delta_tables_cached.entries.items():
         table_path = dest / table_name
         spark.sql(f"CREATE TABLE {table_name} USING DELTA LOCATION '{table_path.as_posix()}'")
-        result_tables[filename] = df
+        dataframes[filename] = df
 
     os.environ["UNIT_TEST_TMP_DIR"] = dest.as_posix()
 
-    return DeltaTablesResult(tables=result_tables, path=dest.as_posix())
+    return DeltaTablesResult(dataframes=dataframes, path=dest.as_posix())
 
 
 @pytest.fixture(scope="function")
