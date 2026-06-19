@@ -102,7 +102,7 @@ def set_utc_timezone():
 
 
 @pytest.fixture(scope="session")
-def spark(set_utc_timezone, request):
+def spark(set_utc_timezone, request, _pyspark_tmp_dir):
     """Create a session-scoped SparkSession configured for local testing.
 
     Enables Delta Lake support when ``delta_jar`` is configured.  The session
@@ -147,6 +147,7 @@ def spark(set_utc_timezone, request):
         .config("spark.worker.ui.retainedDrivers", "1")
         .config("spark.driver.memory", "4g")
         .config("spark.sql.autoBroadcastJoinThreshold", "-1")
+        .config("spark.sql.warehouse.dir", (_pyspark_tmp_dir / "spark-warehouse").as_posix())
         .config(
             "spark.driver.extraJavaOptions",
             "-Duser.timezone=UTC -XX:+UseCompressedOops",
@@ -169,12 +170,13 @@ def spark(set_utc_timezone, request):
 
     spark_session = builder.getOrCreate()
     spark_session.sparkContext.setLogLevel("ERROR")
-    spark_session.sql(f"create database if not exists {database_name}")
+    spark_session.sql(f"create database if not exists `{database_name}`")
     spark_session.sql(f"use {database_name}")
 
     try:
         yield spark_session
     finally:
+        spark_session.sql(f"drop database if exists `{database_name}` cascade")
         spark_session.stop()
 
 
