@@ -2,6 +2,25 @@
 
 <!-- version list -->
 
+## v1.3.0 (2026-06-19)
+
+### Bug Fixes
+
+- Move Spark SQL warehouse into session tmp directory
+  ([#11](https://github.com/avolok/pytest-pyspark-utils/pull/11),
+  [`f5fd971`](https://github.com/avolok/pytest-pyspark-utils/commit/f5fd97115ec09e9f9fb9ff8af560fb02efab7b51))
+
+### Features
+
+- Add spark_driver_memory configuration option for Spark session
+  ([#11](https://github.com/avolok/pytest-pyspark-utils/pull/11),
+  [`f5fd971`](https://github.com/avolok/pytest-pyspark-utils/commit/f5fd97115ec09e9f9fb9ff8af560fb02efab7b51))
+
+- Make spark.driver.memory configurable
+  ([#11](https://github.com/avolok/pytest-pyspark-utils/pull/11),
+  [`f5fd971`](https://github.com/avolok/pytest-pyspark-utils/commit/f5fd97115ec09e9f9fb9ff8af560fb02efab7b51))
+
+
 ## v1.2.0 (2026-06-18)
 
 ### Features
