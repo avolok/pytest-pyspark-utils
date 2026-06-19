@@ -2,6 +2,21 @@
 
 <!-- version list -->
 
+## v1.3.1 (2026-06-19)
+
+### Bug Fixes
+
+- Rename 'tables' to 'dataframes' in delta_tables fixture
+  ([#13](https://github.com/avolok/pytest-pyspark-utils/pull/13),
+  [`7488ded`](https://github.com/avolok/pytest-pyspark-utils/commit/7488dedfa6fbf96661c20d80e81b9623956884bc))
+
+### Refactoring
+
+- Rename 'tables' to 'dataframes' in DeltaTablesResult and related functions
+  ([#12](https://github.com/avolok/pytest-pyspark-utils/pull/12),
+  [`9378946`](https://github.com/avolok/pytest-pyspark-utils/commit/937894605f5f974e4490e0e910d861e61d2475b1))
+
+
 ## v1.3.0 (2026-06-19)
 
 ### Bug Fixes
