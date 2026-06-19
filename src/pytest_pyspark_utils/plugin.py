@@ -3,6 +3,7 @@
 Configuration (pytest.ini / pyproject.toml / CLI):
     delta_jar: Maven coordinates for Delta Lake JAR.
     spark_app_name: Spark application name (default: pytest-pyspark).
+    spark_driver_memory: spark.driver.memory for the test SparkSession (default: 4g).
     delta_cache_dir: Cache directory name (default: _delta_cache).
 
 Usage:
@@ -47,4 +48,9 @@ def pytest_addoption(parser):
         "delta_cache_dir",
         "Directory for persistent delta table cache (relative to rootdir)",
         default="_delta_cache",
+    )
+    parser.addini(
+        "spark_driver_memory",
+        "spark.driver.memory for the test SparkSession",
+        default="4g",
     )

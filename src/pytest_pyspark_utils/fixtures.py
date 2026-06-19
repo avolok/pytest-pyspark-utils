@@ -116,6 +116,7 @@ def spark(set_utc_timezone, request, _pyspark_tmp_dir):
 
     delta_jar = request.config.getoption("--delta-jar") or request.config.getini("delta_jar") or None
     app_name = request.config.getini("spark_app_name")
+    driver_memory = request.config.getini("spark_driver_memory")
     database_name = "pytest_" + "".join(random.choice(string.ascii_lowercase + string.digits) for _ in range(4))
 
     os.environ["PYSPARK_PYTHON"] = sys.executable
@@ -145,7 +146,7 @@ def spark(set_utc_timezone, request, _pyspark_tmp_dir):
         .config("spark.sql.ui.retainedExecutions", "1")
         .config("spark.worker.ui.retainedExecutors", "1")
         .config("spark.worker.ui.retainedDrivers", "1")
-        .config("spark.driver.memory", "4g")
+        .config("spark.driver.memory", driver_memory)
         .config("spark.sql.autoBroadcastJoinThreshold", "-1")
         .config("spark.sql.warehouse.dir", (_pyspark_tmp_dir / "spark-warehouse").as_posix())
         .config(
